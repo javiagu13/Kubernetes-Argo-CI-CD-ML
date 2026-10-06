@@ -1,0 +1,14 @@
+Step 1:
+API Testing with 2 different variables for 8000 and 8001 in the app folder
+
+Step 2:
+Docker container building having 1 image and 2 containers same folder
+
+### k8s_v1 folder:
+Step 3:
+Creating deployments with kubernetes (containers become pods)
+
+Step 4:
+Making a kubernetes service to have just one endpoint
+
+Step 5:

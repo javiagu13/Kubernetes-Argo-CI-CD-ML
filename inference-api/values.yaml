@@ -1,0 +1,26 @@
+replicaCount: 2
+
+image:
+  repository: inference-api
+  tag: v2
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8000
+
+env:
+  VERSION: v2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: kubernetes.docker.internal
