@@ -3,6 +3,8 @@ kind: Service
 
 metadata:
   name: {{ include "inference-api.fullname" . }}
+  labels:
+    {{- include "inference-api.labels" . | nindent 4 }}
 
 spec:
   type: {{ .Values.service.type }}
