@@ -1,0 +1,19 @@
+{{- if .Values.monitoring.enabled }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+
+metadata:
+  name: {{ include "inference-api.fullname" . }}
+
+spec:
+  selector:
+    matchLabels:
+      {{- include "inference-api.selectorLabels" . | nindent 6 }}
+
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+
+{{- end }}

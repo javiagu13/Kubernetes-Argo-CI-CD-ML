@@ -14,6 +14,9 @@ env:
   FAILURE_RATE: "0.2"
   LATENCY_MS: "200"
 
+monitoring:
+  enabled: true
+
 resources:
   requests:
     cpu: 100m

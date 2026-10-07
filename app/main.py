@@ -4,8 +4,12 @@ import time
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
+
+# Prometheus
+Instrumentator().instrument(app).expose(app)
 
 VERSION = os.getenv("VERSION", "v1")
 FAILURE_RATE = float(os.getenv("FAILURE_RATE", "0"))

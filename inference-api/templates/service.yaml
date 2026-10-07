@@ -11,6 +11,7 @@ spec:
     {{- include "inference-api.selectorLabels" . | nindent 4 }}
 
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: http
