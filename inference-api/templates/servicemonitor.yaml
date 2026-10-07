@@ -5,6 +5,8 @@ kind: ServiceMonitor
 
 metadata:
   name: {{ include "inference-api.fullname" . }}
+  labels:
+    release: monitoring
 
 spec:
   selector:
