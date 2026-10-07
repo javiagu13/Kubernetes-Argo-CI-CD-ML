@@ -1,15 +1,23 @@
-apiVersion: apps/v1
-kind: Deployment
-
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: {{ include "inference-api.fullname" . }}
-
 spec:
   replicas: {{ .Values.replicaCount }}
+
+  revisionHistoryLimit: 2
 
   selector:
     matchLabels:
       {{- include "inference-api.selectorLabels" . | nindent 6 }}
+
+  strategy:
+    canary:
+      steps:
+        - setWeight: 50
+        - pause: {}
+
+        - setWeight: 100
 
   template:
     metadata:
