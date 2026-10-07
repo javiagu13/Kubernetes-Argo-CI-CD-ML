@@ -40,6 +40,10 @@ spec:
           env:
             - name: VERSION
               value: "{{ .Values.env.VERSION }}"
+            - name: FAILURE_RATE
+              value: "{{ .Values.env.FAILURE_RATE | default "0" }}"
+            - name: LATENCY_MS
+              value: "{{ .Values.env.LATENCY_MS | default "0" }}"
 
           livenessProbe:
             httpGet:

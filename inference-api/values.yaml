@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: inference-api
-  tag: v1
+  tag: v2
   pullPolicy: Never
 
 service:
@@ -10,7 +10,9 @@ service:
   port: 8000
 
 env:
-  VERSION: v1
+  VERSION: v2
+  FAILURE_RATE: "0.2"
+  LATENCY_MS: "200"
 
 resources:
   requests:
