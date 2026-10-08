@@ -12,7 +12,7 @@ service:
 env:
   VERSION: v3
   FAILURE_RATE: "0.5"
-  LATENCY_MS: "200"
+  LATENCY_MS: "201"
 
 monitoring:
   enabled: true
