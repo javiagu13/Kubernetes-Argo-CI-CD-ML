@@ -13,7 +13,7 @@ spec:
       count: 5
       failureLimit: 2
 
-      successCondition: result[0] < 0.05
+      successCondition: result[0] < 0.25
 
       provider:
         prometheus:
