@@ -8,48 +8,47 @@ spec:
     - name: canary-hash
 
   metrics:
-    - name: canary-error-rate
-      initialDelay: 30s
-      interval: 15s
-      count: 20
-      failureLimit: 2
+  - name: canary-error-rate
+    initialDelay: 30s
+    interval: 15s
+    count: 20
 
-      # No condition is met when there is no traffic.
-      # Argo therefore keeps taking measurements instead
-      # of treating "no data" as a failure.
-      successCondition: "len(result) > 0 && result[0] < 0.25"
-      failureCondition: "len(result) > 0 && result[0] >= 0.25"
+    failureLimit: 2
+    inconclusiveLimit: 20
 
-      provider:
-        prometheus:
-          address: http://prometheus-operated.monitoring.svc.cluster.local:9090
+    successCondition: "len(result) > 0 && result[0] < 0.25"
+    failureCondition: "len(result) > 0 && result[0] >= 0.25"
 
-          query: |
-            (
-              sum(
-                rate(
-                  http_requests_total{
-                    namespace="default",
-                    service="inference-api",
-                    handler="/predict",
-                    method="POST",
-                    status=~"5..",
-                    pod=~"inference-api-{{ `{{args.canary-hash}}` }}-.*"
-                  }[1m]
-                )
+    provider:
+      prometheus:
+        address: http://prometheus-operated.monitoring.svc.cluster.local:9090
+
+        query: |
+          (
+            sum(
+              rate(
+                http_requests_total{
+                  namespace="default",
+                  service="inference-api",
+                  handler="/predict",
+                  method="POST",
+                  status=~"5..",
+                  pod=~"inference-api-{{ `{{args.canary-hash}}` }}-.*"
+                }[1m]
               )
             )
-            /
-            (
-              sum(
-                rate(
-                  http_requests_total{
-                    namespace="default",
-                    service="inference-api",
-                    handler="/predict",
-                    method="POST",
-                    pod=~"inference-api-{{ `{{args.canary-hash}}` }}-.*"
-                  }[1m]
-                )
+          )
+          /
+          (
+            sum(
+              rate(
+                http_requests_total{
+                  namespace="default",
+                  service="inference-api",
+                  handler="/predict",
+                  method="POST",
+                  pod=~"inference-api-{{ `{{args.canary-hash}}` }}-.*"
+                }[1m]
               )
             )
+          )
