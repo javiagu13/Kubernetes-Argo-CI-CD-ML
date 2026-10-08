@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: inference-api-error-rate
+
 spec:
   args:
     - name: canary-hash
@@ -10,8 +11,10 @@ spec:
     - name: canary-error-rate
       interval: 15s
       initialDelay: 15s
-      count: 5
+      count: 20
+
       failureLimit: 2
+      consecutiveErrorLimit: 10
 
       successCondition: result[0] < 0.25
 
