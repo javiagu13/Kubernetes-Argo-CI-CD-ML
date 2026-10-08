@@ -9,9 +9,11 @@ spec:
 
   metrics:
     - name: canary-error-rate
+      initialDelay: 30s
       interval: 15s
-      initialDelay: 15s
-      count: 20
+      count: 5
+      failureLimit: 2
+      consecutiveErrorLimit: 10
 
       failureLimit: 2
       consecutiveErrorLimit: 10
