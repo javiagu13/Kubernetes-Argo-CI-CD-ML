@@ -10,8 +10,8 @@ service:
   port: 8000
 
 env:
-  VERSION: v2
-  FAILURE_RATE: "0.2"
+  VERSION: v3
+  FAILURE_RATE: "0.5"
   LATENCY_MS: "200"
 
 monitoring:
