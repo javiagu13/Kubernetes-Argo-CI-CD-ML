@@ -15,6 +15,15 @@ spec:
     canary:
       steps:
         - setWeight: 50
+
+        - analysis:
+            templates:
+              - templateName: inference-api-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+
         - pause: {}
 
         - setWeight: 100

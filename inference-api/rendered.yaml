@@ -1,0 +1,202 @@
+---
+# Source: inference-api/templates/service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: inference-api
+  labels:
+    helm.sh/chart: inference-api-0.1.0
+    app.kubernetes.io/name: inference-api
+    app.kubernetes.io/instance: inference-api
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: inference-api
+    app.kubernetes.io/instance: inference-api
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: http
+---
+# Source: inference-api/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: inference-api
+
+spec:
+  ingressClassName: nginx
+
+  rules:
+    - host: kubernetes.docker.internal
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: inference-api
+                port:
+                  number: 8000
+---
+# Source: inference-api/templates/analysis-template.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: inference-api-error-rate
+spec:
+  args:
+    - name: canary-hash
+
+  metrics:
+    - name: canary-error-rate
+      interval: 15s
+      initialDelay: 15s
+      failureLimit: 2
+
+      successCondition: result[0] < 0.05
+
+      provider:
+        prometheus:
+          address: http://prometheus-operated.monitoring.svc.cluster.local:9090
+
+          query: |
+            (
+              sum(
+                rate(
+                  http_requests_total{
+                    namespace="default",
+                    service="inference-api",
+                    handler="/predict",
+                    method="POST",
+                    status=~"5..",
+                    pod=~"inference-api-{{args.canary-hash}}-.*"
+                  }[1m]
+                )
+              )
+            )
+            /
+            (
+              sum(
+                rate(
+                  http_requests_total{
+                    namespace="default",
+                    service="inference-api",
+                    handler="/predict",
+                    method="POST",
+                    pod=~"inference-api-{{args.canary-hash}}-.*"
+                  }[1m]
+                )
+              )
+            )
+---
+# Source: inference-api/templates/rollout.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: inference-api
+spec:
+  replicas: 2
+
+  revisionHistoryLimit: 2
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: inference-api
+      app.kubernetes.io/instance: inference-api
+
+  strategy:
+  canary:
+    steps:
+      - setWeight: 50
+
+      - analysis:
+          templates:
+            - templateName: inference-api-error-rate
+          args:
+            - name: canary-hash
+              valueFrom:
+                podTemplateHashValue: Latest
+
+      - pause: {}
+
+      - setWeight: 100
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: inference-api
+        app.kubernetes.io/instance: inference-api
+
+    spec:
+      containers:
+        - name: inference-api
+
+          image: "inference-api:v2-metrics"
+
+          imagePullPolicy: Never
+
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          env:
+            - name: VERSION
+              value: "v2"
+            - name: FAILURE_RATE
+              value: "0.2"
+            - name: LATENCY_MS
+              value: "200"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: inference-api/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+
+metadata:
+  name: inference-api
+  labels:
+    release: monitoring
+
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: inference-api
+      app.kubernetes.io/instance: inference-api
+
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
